@@ -3,7 +3,7 @@
 from dotenv import load_dotenv
 load_dotenv()
 
-from llm_talk import Interview, TopicTemplate
+from llm_talk import Interview, TopicTemplate  # noqa: E402
 
 # Define model pairs to compare
 pairs = [

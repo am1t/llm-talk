@@ -3,7 +3,7 @@
 from dotenv import load_dotenv
 load_dotenv()
 
-from llm_talk import Interview
+from llm_talk import Interview  # noqa: E402
 
 # Define your own topics
 result = Interview(

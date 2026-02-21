@@ -3,7 +3,7 @@
 from dotenv import load_dotenv
 load_dotenv()
 
-from llm_talk import Interview, TopicTemplate, EvaluatorTemplate
+from llm_talk import Interview, TopicTemplate, EvaluatorTemplate  # noqa: E402
 
 # --- Example 1: Use a different model as the evaluator ---
 # By default the evaluator is Claude. Here we use GPT-4o instead.

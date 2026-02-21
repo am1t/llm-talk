@@ -3,7 +3,7 @@
 from dotenv import load_dotenv
 load_dotenv()
 
-from llm_talk import Interview
+from llm_talk import Interview  # noqa: E402
 
 # Run an interview between OpenAI and Claude
 result = Interview("openai", "claude").run()

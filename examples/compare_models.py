@@ -3,7 +3,7 @@
 from dotenv import load_dotenv
 load_dotenv()
 
-from llm_talk import Interview, TopicTemplate
+from llm_talk import Interview, TopicTemplate  # noqa: E402
 
 interviewees = ["openai", "claude", "gemini"]
 
