@@ -1,0 +1,21 @@
+# Environment variables — never commit real secrets
+.env
+
+# Claude Code local config
+.claude/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+
+# Tools
+.pytest_cache/
+.ruff_cache/
+
+# Output files
+*.md
+!README.md

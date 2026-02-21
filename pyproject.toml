@@ -1,0 +1,57 @@
+[project]
+name = "llm-talk"
+version = "0.1.0"
+description = "LLM-to-LLM interview framework for evaluating conversational capabilities"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "Amit Gawande", email = "reply@amitgawande.com"},
+]
+keywords = ["llm", "ai", "interview", "evaluation", "conversation", "benchmark"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+dependencies = [
+    "aisuite[anthropic,openai]>=0.1.11",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "ruff",
+]
+
+examples = [
+    "python-dotenv>=1.0.0",
+]
+
+web = [
+    "streamlit",
+]
+
+[project.urls]
+Homepage = "https://github.com/am1t/llm-talk"
+Repository = "https://github.com/am1t/llm-talk"
+"Bug Tracker" = "https://github.com/am1t/llm-talk/issues"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 100
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
