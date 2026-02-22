@@ -57,7 +57,7 @@ def test_interview_result_save_generates_filename():
         os.chdir(tmpdir)
         try:
             path = result.save()
-            assert path.startswith("interview_")
+            assert Path(path).name.startswith("interview_")
             assert path.endswith(".md")
             assert Path(path).exists()
         finally:

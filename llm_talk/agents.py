@@ -1,7 +1,10 @@
 """AI agent for conversations using aisuite."""
 
+import logging
 from dataclasses import dataclass, field
 import aisuite
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -46,4 +49,5 @@ class AIAgent:
             )
             return response.choices[0].message.content
         except Exception as exc:
-            return f"[API error from {self.name}: {exc}]"
+            logger.exception("API call failed for agent %r (model %r)", self.name, self.model)
+            return f"[{self.name} could not generate a response]"

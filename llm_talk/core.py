@@ -77,6 +77,15 @@ class InterviewResult:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             filepath = f"interview_{timestamp}.md"
 
+        # Guard against relative path traversal (e.g. "../../etc/passwd").
+        # Absolute paths are allowed — callers may legitimately specify any directory.
+        if not Path(filepath).is_absolute():
+            resolved = Path(filepath).resolve()
+            if not resolved.is_relative_to(Path.cwd().resolve()):
+                raise ValueError(
+                    f"Unsafe file path: {filepath!r} resolves outside the current directory"
+                )
+
         md = generate_markdown(
             self.conversation,
             self.interviewer_name,

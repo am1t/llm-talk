@@ -50,8 +50,7 @@ def test_respond_returns_error_string_on_failure():
 
     result = agent.respond()
 
-    assert result.startswith("[API error from TestAgent:")
-    assert "network down" in result
+    assert result == "[TestAgent could not generate a response]"
 
 
 def test_client_created_if_not_provided():
