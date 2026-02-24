@@ -1,6 +1,6 @@
 """Interview orchestration — the main entry point for llm-talk."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 
@@ -55,7 +55,7 @@ IMPORTANT: Never try to end the conversation. Keep engaging thoughtfully with ea
 class InterviewResult:
     """Container for interview results."""
 
-    evaluation: str
+    evaluation: str | None
     conversation: list[dict]
     total_turns: int
     loop_detected: bool
@@ -63,6 +63,12 @@ class InterviewResult:
     interviewer_name: str
     interviewee_name: str
     evaluator_model: str
+
+    # Private evaluator config for deferred evaluation (always populated by run())
+    _topics: list[str] | None = field(default=None, repr=False)
+    _evaluation_dimensions: list[str] | None = field(default=None, repr=False)
+    _evaluator_system_prompt: str | None = field(default=None, repr=False)
+    _evaluator_user_prompt: str | None = field(default=None, repr=False)
 
     def save(self, filepath: str | None = None) -> str:
         """Save conversation to a markdown file.
@@ -111,6 +117,28 @@ class InterviewResult:
 
     def __str__(self) -> str:
         """Pretty print the evaluation."""
+        if self.evaluation is None:
+            return "[Evaluation not yet run. Call .evaluate() first.]"
+        return self.evaluation
+
+    def evaluate(self) -> str:
+        """Run evaluation and cache the result. No-op if already evaluated.
+
+        Returns:
+            The evaluation text.
+        """
+        if self.evaluation is not None:
+            return self.evaluation
+        self.evaluation = get_evaluation(
+            self.conversation,
+            self.interviewer_name,
+            self.interviewee_name,
+            evaluator_model=self.evaluator_model,
+            topics=self._topics,
+            evaluation_dimensions=self._evaluation_dimensions,
+            evaluator_system_prompt=self._evaluator_system_prompt,
+            evaluator_user_prompt=self._evaluator_user_prompt,
+        )
         return self.evaluation
 
 
@@ -174,16 +202,21 @@ class Interview:
         else:
             self.topics = list(topics)
 
-    def run(self, turns: int = 50, verbose: bool = True) -> InterviewResult:
+    def run(self, turns: int = 50, verbose: bool = True, evaluate: bool = True) -> InterviewResult:
         """Run the interview.
 
         Args:
             turns: Maximum number of conversation turns.
             verbose: If True (default), print a single-line progress indicator
                 during execution. Set to False to suppress all output.
+            evaluate: If True (default), run the evaluator immediately and
+                populate ``result.evaluation``. Pass ``False`` to skip the
+                evaluation API call; you can trigger it later with
+                ``result.evaluate()``.
 
         Returns:
-            InterviewResult with conversation data and evaluation.
+            InterviewResult with conversation data and evaluation (or None if
+            ``evaluate=False``).
         """
         interviewer_name = get_display_name(self.interviewer_model)
         interviewee_name = get_display_name(self.interviewee_model)
@@ -245,16 +278,20 @@ class Interview:
         if verbose:
             clear_progress()
 
-        # Get evaluation
-        evaluation = get_evaluation(
-            conversation_turns,
-            interviewer_name,
-            interviewee_name,
-            evaluator_model=self.evaluator_model,
-            topics=self.topics,
-            evaluation_dimensions=self.evaluation_dimensions,
-            evaluator_system_prompt=self.evaluator_system_prompt,
-            evaluator_user_prompt=self.evaluator_user_prompt,
+        # Optionally run evaluation immediately
+        evaluation = (
+            get_evaluation(
+                conversation_turns,
+                interviewer_name,
+                interviewee_name,
+                evaluator_model=self.evaluator_model,
+                topics=self.topics,
+                evaluation_dimensions=self.evaluation_dimensions,
+                evaluator_system_prompt=self.evaluator_system_prompt,
+                evaluator_user_prompt=self.evaluator_user_prompt,
+            )
+            if evaluate
+            else None
         )
 
         return InterviewResult(
@@ -266,4 +303,8 @@ class Interview:
             interviewer_name=interviewer_name,
             interviewee_name=interviewee_name,
             evaluator_model=self.evaluator_model,
+            _topics=self.topics,
+            _evaluation_dimensions=self.evaluation_dimensions,
+            _evaluator_system_prompt=self.evaluator_system_prompt,
+            _evaluator_user_prompt=self.evaluator_user_prompt,
         )

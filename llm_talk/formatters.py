@@ -7,7 +7,7 @@ def generate_markdown(
     conversation_turns: list[dict],
     interviewer_name: str,
     interviewee_name: str,
-    evaluation: str,
+    evaluation: str | None,
     evaluator_model: str,
 ) -> str:
     """Generate a markdown report of the interview.
@@ -16,7 +16,7 @@ def generate_markdown(
         conversation_turns: List of turn dicts with 'agent', 'turn', 'response' keys.
         interviewer_name: Display name of the interviewer.
         interviewee_name: Display name of the interviewee.
-        evaluation: Claude's evaluation text.
+        evaluation: Evaluation text, or None if evaluation has not been run.
         evaluator_model: Model used for evaluation.
 
     Returns:
@@ -55,11 +55,13 @@ def generate_markdown(
         md += f"### {emoji} Turn {turn_data['turn']}: {turn_data['agent']}\n\n"
         md += f"{turn_data['response']}\n\n"
 
+    evaluation_text = evaluation if evaluation is not None else "_Evaluation not yet run._"
+
     md += f"""---
 
 ## Evaluation
 
-{evaluation}
+{evaluation_text}
 
 ---
 

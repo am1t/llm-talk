@@ -227,3 +227,142 @@ def test_interview_run_uses_custom_system_prompts(mock_agent_cls, mock_eval):
     # Second AIAgent call should use the custom interviewee prompt
     second_call_kwargs = mock_agent_cls.call_args_list[1].kwargs
     assert second_call_kwargs["system_prompt"] == "custom ivee prompt"
+
+
+# ---------------------------------------------------------------------------
+# InterviewResult — None evaluation (deferred)
+# ---------------------------------------------------------------------------
+
+
+def test_interview_result_str_no_evaluation():
+    result = _make_result(evaluation=None)
+    assert ".evaluate()" in str(result)
+
+
+def test_interview_result_to_dict_no_evaluation():
+    result = _make_result(evaluation=None)
+    assert result.to_dict()["evaluation"] is None
+
+
+def test_interview_result_save_with_no_evaluation():
+    result = _make_result(evaluation=None)
+    with tempfile.NamedTemporaryFile(suffix=".md", delete=False) as f:
+        tmp_path = f.name
+
+    result.save(tmp_path)
+    content = Path(tmp_path).read_text(encoding="utf-8")
+    assert "Evaluation not yet run" in content
+    assert "None" not in content
+
+
+def test_interview_result_evaluate_method():
+    result = _make_result(evaluation=None)
+    result._topics = ["topic A"]
+
+    with patch("llm_talk.core.get_evaluation", return_value="Deferred evaluation.") as mock_eval:
+        returned = result.evaluate()
+
+    assert returned == "Deferred evaluation."
+    assert result.evaluation == "Deferred evaluation."
+    mock_eval.assert_called_once_with(
+        result.conversation,
+        result.interviewer_name,
+        result.interviewee_name,
+        evaluator_model=result.evaluator_model,
+        topics=["topic A"],
+        evaluation_dimensions=None,
+        evaluator_system_prompt=None,
+        evaluator_user_prompt=None,
+    )
+
+
+def test_interview_result_evaluate_idempotent():
+    result = _make_result(evaluation=None)
+
+    with patch("llm_talk.core.get_evaluation", return_value="Cached eval.") as mock_eval:
+        result.evaluate()
+        result.evaluate()  # second call
+
+    assert mock_eval.call_count == 1
+    assert result.evaluation == "Cached eval."
+
+
+def test_interview_result_evaluate_when_already_populated():
+    result = _make_result(evaluation="Already evaluated.")
+    with patch("llm_talk.core.get_evaluation") as mock_eval:
+        returned = result.evaluate()
+
+    assert returned == "Already evaluated."
+    mock_eval.assert_not_called()
+
+
+# ---------------------------------------------------------------------------
+# Interview.run() — evaluate=False
+# ---------------------------------------------------------------------------
+
+
+@patch("llm_talk.core.get_evaluation", return_value="Should not be called")
+@patch("llm_talk.core.AIAgent")
+def test_interview_run_evaluate_false(mock_agent_cls, mock_eval):
+    interviewer = MagicMock()
+    interviewer.name = "OpenAI gpt-4o-mini"
+    interviewer.respond.return_value = "Q"
+
+    interviewee = MagicMock()
+    interviewee.name = "Anthropic claude-sonnet-4-5"
+    interviewee.respond.return_value = "A"
+
+    mock_agent_cls.side_effect = [interviewer, interviewee]
+
+    result = Interview("openai", "claude").run(turns=2, verbose=False, evaluate=False)
+
+    assert result.evaluation is None
+    mock_eval.assert_not_called()
+
+
+@patch("llm_talk.core.get_evaluation", return_value="Deferred!")
+@patch("llm_talk.core.AIAgent")
+def test_interview_run_evaluate_false_then_deferred(mock_agent_cls, mock_eval):
+    interviewer = MagicMock()
+    interviewer.name = "OpenAI gpt-4o-mini"
+    interviewer.respond.return_value = "Q"
+
+    interviewee = MagicMock()
+    interviewee.name = "Anthropic claude-sonnet-4-5"
+    interviewee.respond.return_value = "A"
+
+    mock_agent_cls.side_effect = [interviewer, interviewee]
+
+    result = Interview("openai", "claude").run(turns=2, verbose=False, evaluate=False)
+    assert result.evaluation is None
+
+    text = result.evaluate()
+    assert text == "Deferred!"
+    assert result.evaluation == "Deferred!"
+    mock_eval.assert_called_once()
+
+
+@patch("llm_talk.core.get_evaluation", return_value="eval")
+@patch("llm_talk.core.AIAgent")
+def test_interview_run_private_fields_populated(mock_agent_cls, mock_eval):
+    interviewer = MagicMock()
+    interviewer.name = "OpenAI gpt-4o-mini"
+    interviewer.respond.return_value = "Q"
+
+    interviewee = MagicMock()
+    interviewee.name = "Anthropic claude-sonnet-4-5"
+    interviewee.respond.return_value = "A"
+
+    mock_agent_cls.side_effect = [interviewer, interviewee]
+
+    result = Interview(
+        "openai",
+        "claude",
+        topics=["topic X"],
+        evaluator_system_prompt="custom sys",
+    ).run(turns=2, verbose=False, evaluate=False)
+
+    assert result._topics == ["topic X"]
+    assert result._evaluator_system_prompt == "custom sys"
+    assert result._evaluation_dimensions is None
+    assert result._evaluator_user_prompt is None

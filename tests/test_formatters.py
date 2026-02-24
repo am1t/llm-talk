@@ -45,3 +45,10 @@ def test_generate_markdown_emojis():
     # Interviewer gets green circle, interviewee gets blue
     assert "\U0001f7e2" in md
     assert "\U0001f535" in md
+
+
+def test_generate_markdown_no_evaluation():
+    turns = [{"turn": 1, "agent": "A", "response": "Hello"}]
+    md = generate_markdown(turns, "A", "B", evaluation=None, evaluator_model="model")
+    assert "Evaluation not yet run" in md
+    assert "None" not in md
