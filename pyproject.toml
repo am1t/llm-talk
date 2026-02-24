@@ -1,6 +1,6 @@
 [project]
 name = "llm-talk"
-version = "0.2.0"
+version = "0.2.1"
 description = "LLM-to-LLM interview framework for evaluating conversational capabilities"
 readme = "README.md"
 requires-python = ">=3.10"

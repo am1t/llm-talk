@@ -48,6 +48,6 @@ class AIAgent:
                 temperature=0.7,
             )
             return response.choices[0].message.content
-        except Exception as exc:
+        except Exception:
             logger.exception("API call failed for agent %r (model %r)", self.name, self.model)
             return f"[{self.name} could not generate a response]"
