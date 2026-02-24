@@ -19,3 +19,4 @@ build/
 # Output files
 *.md
 !README.md
+!CHANGELOG.md

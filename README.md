@@ -1,8 +1,11 @@
-# llm-talk
+# llm-talk: LLM-to-LLM interview framework for exploring conversational behavior
 
-LLM-to-LLM interview framework for evaluating conversational capabilities.
+[![PyPI](https://img.shields.io/pypi/v/llm-talk)](https://pypi.org/project/llm-talk/)
+[![Tests](https://github.com/am1t/llm-talk/actions/workflows/test.yml/badge.svg)](https://github.com/am1t/llm-talk/actions/workflows/test.yml)
 
-Let LLMs interview each other to reveal strengths, weaknesses, and surprising behaviors that benchmarks miss.
+This started as a quick way to evaluate a new AI provider — and turned into something more interesting. Turns out LLMs have distinct interviewing personalities, struggle with conversational closure, and tend to converge on the same philosophical territory regardless of who's asking.
+
+Full write-up, with example interview transcripts: [When LLMs Interview Each Other](https://dev.amitgawande.com/2026/when-llms-interview-each-other)
 
 ## Quick Start
 
